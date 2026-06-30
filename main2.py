@@ -1,0 +1,48 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI(
+    title='Lỗi đăng ký trùng khóa học',
+    description='API Create đăng ký khóa học – Lỗi đăng ký trùng khóa học',
+    version='1.0.0'
+)
+
+enrollments = [
+    {
+        "id": 1,
+        "student_id": "SV001",
+        "course_id": 1
+    },
+    {
+        "id": 2,
+        "student_id": "SV002",
+        "course_id": 1
+    }
+]
+
+class EnrollmentCreate(BaseModel):
+    student_id: str
+    course_id: int
+
+
+@app.post("/enrollments", status_code=201)
+def create_enrollment(enrollment: EnrollmentCreate):
+    for item in enrollments:
+        if (item["student_id"] == enrollment.student_id and item["course_id"] == enrollment.course_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Sinh viên đã đăng kí trùng khóa học"
+            )
+            
+    new_enrollment = {
+        "id": len(enrollments) + 1,
+        "student_id": enrollment.student_id,
+        "course_id": enrollment.course_id
+    }
+    
+    enrollments.append(new_enrollment)
+    
+    return{
+        "message": "Enroll successfully",
+        "data": new_enrollment    
+    }
